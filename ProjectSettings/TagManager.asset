@@ -7,8 +7,10 @@ TagManager:
   - CasillaNormal
   - CasillaEmbarrada
   - CasillaBloqueada
-  - Ficha
   - Flecha
+  - FichaRoja
+  - FichaVerde
+  - FichaAzul
   layers:
   - Default
   - TransparentFX

@@ -78,7 +78,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d05e8f1e499edce4cb23c2540bef8390, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GameM: {fileID: 0}
   positionInMatrix: {x: 9, y: 9}
 --- !u!212 &212430875764599588
 SpriteRenderer:

@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class Casilla : MonoBehaviour {
 	 
-	public GameObject GameM;
 	public Vector2 positionInMatrix;
 
 	// Use this for initialization
@@ -19,6 +18,7 @@ public class Casilla : MonoBehaviour {
 
 
 	void OnMouseDown() {
+		
 		GameManager.instance.onClick (this.gameObject);
 	}
 }

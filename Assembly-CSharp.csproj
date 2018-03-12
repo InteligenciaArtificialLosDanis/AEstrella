@@ -9,7 +9,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{319A88A4-950F-2A00-AD3C-26B501ABE158}</ProjectGuid>
+    <ProjectGuid>{1E9CA1C9-7AE4-E1A9-6E8F-D227A5F1FEF8}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Assembly-CSharp</AssemblyName>
@@ -53,6 +53,7 @@
   <ItemGroup>
      <Compile Include="Assets\Componentes\Casilla.cs" />
      <Compile Include="Assets\Componentes\Ficha.cs" />
+     <Compile Include="Assets\Componentes\Flecha.cs" />
      <Compile Include="Assets\Componentes\GameManager.cs" />
  <Reference Include="Vuforia.UnityExtensions.Editor">
  <HintPath>c:/software/programacion/Unity2017p3/Editor/Data/PlaybackEngines/VuforiaSupport/Managed/Editor/Vuforia.UnityExtensions.Editor.dll</HintPath>

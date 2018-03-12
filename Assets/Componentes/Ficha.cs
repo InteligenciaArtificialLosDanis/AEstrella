@@ -5,12 +5,15 @@ using UnityEngine;
 public class Ficha : MonoBehaviour {
 
 	public GameObject estrella;
+	public bool activa;
 	Vector2 posEnMatriz;
 
 
 	// Use this for initialization
 	void Start () {
-		estrella.SetActive (false);
+		activa = false;
+		cambiaEstrella (false);
+
 	}
 	
 	// Update is called once per frame
@@ -18,11 +21,14 @@ public class Ficha : MonoBehaviour {
 		
 	}
 
-	void OnMouseDown(){
-	}
+	public void cambiaEstrella(bool actEstr){
+		if (actEstr) {
 
-	public void cambiaActivo(bool activo){
-		estrella.SetActive (activo);
+			Instantiate (estrella, this.transform);
+		} 
+		else { //CUANDO ES FALSO
+			//estrella.renderer.enabled = false;
+		}
 	}
 
 	public void setPosMatriz(int x, int y){
@@ -32,5 +38,14 @@ public class Ficha : MonoBehaviour {
 
 	public Vector2 getPosMatriz(){
 		return posEnMatriz;
+	}
+
+
+	void OnMouseDown() {
+
+		activa = true;
+		cambiaEstrella (true);
+		GameManager.instance.setFichaActiva (this.gameObject);
+		
 	}
 }

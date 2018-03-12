@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 
 public class GameManager : MonoBehaviour {
@@ -11,21 +12,32 @@ public class GameManager : MonoBehaviour {
 
 	tipoCasilla [,] tablero = new tipoCasilla[10,10];
 
-	//GameObjects
+	//GameObjects tablero
 	public GameObject normal;
 	public GameObject embarrada;
 	public GameObject bloqueada;
+
 
 	//Ficha
 	public GameObject roja;
 	public GameObject verde;
 	public GameObject azul;
 
+	GameObject fichaActiva, flechaActiva;
+	public Text seleccion;
+
+	//Flechas
+	public GameObject flechaRoja;
+	public GameObject flechaVerde;
+	public GameObject flechaAzul;
+
 	const int MaxNumCasillasEmbarradas = 12, MaxNumCasillasBloqueadas = 10;
 	int numCasillasEmbarradas = MaxNumCasillasEmbarradas;
 	int numCasillasBloqueadas = MaxNumCasillasBloqueadas;
 	// Use this for initialization
 	void Start () {
+
+		fichaActiva = null;
 
 		instance = this;
 		instanciaFichas ();
@@ -35,11 +47,31 @@ public class GameManager : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-       
+		
     }
 
 	public void onClick(GameObject casillaPulsada){
-		if (tablero [(int)casillaPulsada.GetComponent<Casilla> ().positionInMatrix.x, (int)casillaPulsada.GetComponent<Casilla> ().positionInMatrix.y] != tipoCasilla.Ficha) {
+
+		if (fichaActiva != null) {
+			if (casillaPulsada.tag == "CasillaBloqueada") {
+				fichaActiva = null;
+				Destroy (flechaActiva);
+				seleccion.color = new Color (1, 1, 1);
+				seleccion.text = "Ficha seleccionada: ";
+
+			} 
+			//INSTANCIO LA FLECHA
+			//Nota: Se puede pulsar en otras fichas. Cuestión de Diseño TM
+			else {
+				if (flechaActiva == null)
+					instanciaFlecha (casillaPulsada);
+				else
+					flechaActiva.transform.position = casillaPulsada.transform.position;
+			}
+
+		} 
+	
+		else if (tablero [(int)casillaPulsada.GetComponent<Casilla> ().positionInMatrix.x, (int)casillaPulsada.GetComponent<Casilla> ().positionInMatrix.y] != tipoCasilla.Ficha) {
 			switch (casillaPulsada.tag) {
 			case "CasillaNormal":
 				casillaPulsada.tag = "CasillaEmbarrada";
@@ -176,6 +208,65 @@ public class GameManager : MonoBehaviour {
 		}
 
 		Camera.main.orthographicSize = 10 * 0.55f;
+	}
+
+
+	public void setFichaActiva(GameObject FichaAct){
+	//Si hay una ficha activa, la desactivamos y activamos la que nos viene
+		if (fichaActiva == null) {
+			fichaActiva = FichaAct;
+		} 
+		else {
+			//Se desactiva la que está activa
+			fichaActiva.GetComponent<Ficha> ().activa = false;
+			fichaActiva.GetComponent<Ficha> ().cambiaEstrella (false);
+
+			//Y se activa la que se ha clickado nueva
+			fichaActiva = FichaAct;
+			cambiaTexto ();
+			
+		}
+
+	}
+	//Cambia el texto que indica la ficha seleccionada
+	void cambiaTexto(){
+		switch (fichaActiva.tag) {
+
+		case "FichaRoja":
+			seleccion.color = new Color (1, 0, 0);
+			seleccion.text = "Ficha seleccionada: Roja";
+			break;
+		
+		case "FichaVerde":
+			seleccion.color = new Color (0, 1, 0);
+			seleccion.text = "Ficha seleccionada: Verde";
+			break;
+
+		case "FichaAzul":
+			seleccion.color = new Color (0, 0, 1);
+			seleccion.text = "Ficha seleccionada: Azul";
+			break;
+
+		}
+	}
+
+	void instanciaFlecha(GameObject casilla){
+		switch (fichaActiva.tag) {
+
+		case "FichaRoja":
+			flechaActiva = Instantiate (flechaRoja, casilla.transform);
+			//Colocamos la flecha en la matriz y tal
+			break;
+
+		case "FichaVerde":
+			flechaActiva = Instantiate (flechaVerde, casilla.transform);
+			break;
+
+		case "FichaAzul":
+			flechaActiva = Instantiate (flechaAzul, casilla.transform);
+			break;
+
+		}
 	}
 
 
