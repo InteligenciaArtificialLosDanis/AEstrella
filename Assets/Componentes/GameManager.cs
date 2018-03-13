@@ -23,7 +23,7 @@ public class GameManager : MonoBehaviour {
 	public GameObject verde;
 	public GameObject azul;
 
-	GameObject fichaActiva, flechaActiva;
+	GameObject fichaActiva, flechaActiva, rojaAct, verdeAct, azulAct;
 	public Text seleccion;
 
 	//Flechas
@@ -31,7 +31,7 @@ public class GameManager : MonoBehaviour {
 	public GameObject flechaVerde;
 	public GameObject flechaAzul;
 
-	const int MaxNumCasillasEmbarradas = 12, MaxNumCasillasBloqueadas = 10;
+    const int MaxNumCasillasEmbarradas = 12, MaxNumCasillasBloqueadas = 10;
 	int numCasillasEmbarradas = MaxNumCasillasEmbarradas;
 	int numCasillasBloqueadas = MaxNumCasillasBloqueadas;
 	// Use this for initialization
@@ -54,20 +54,42 @@ public class GameManager : MonoBehaviour {
 
 		if (fichaActiva != null) {
 			if (casillaPulsada.tag == "CasillaBloqueada") {
-				fichaActiva = null;
-				Destroy (flechaActiva);
-				seleccion.color = new Color (1, 1, 1);
-				seleccion.text = "Ficha seleccionada: ";
+
+                if (fichaActiva.tag == "FichaRoja") Destroy(rojaAct);
+
+                else if (fichaActiva.tag == "FichaVerde") Destroy(verdeAct);
+
+                else if (fichaActiva.tag == "FichaAzul") Destroy(azulAct);
+
+                fichaActiva = null;
+
+                seleccion.color = new Color (1, 1, 1);
+				seleccion.text = "Unicornio activo: ";
 
 			} 
-			//INSTANCIO LA FLECHA
-			//Nota: Se puede pulsar en otras fichas. Cuestión de Diseño TM
+			//INSTANCIA DE LA FLECHA
 			else {
-				if (flechaActiva == null)
-					instanciaFlecha (casillaPulsada);
-				else
-					flechaActiva.transform.position = casillaPulsada.transform.position;
-			}
+
+                if (fichaActiva.tag == "FichaRoja" && rojaAct == null) instanciaFlecha(casillaPulsada, "FichaRoja");
+
+                else if (fichaActiva.tag == "FichaVerde" && verdeAct == null) instanciaFlecha(casillaPulsada, "FichaVerde");
+
+                else if (fichaActiva.tag == "FichaAzul" && azulAct == null) instanciaFlecha(casillaPulsada, "FichaAzul");
+
+                else
+                {
+
+                        if (flechaActiva == rojaAct)
+                            rojaAct.transform.position = casillaPulsada.transform.position;
+
+                        else if (flechaActiva == verdeAct)
+                            verdeAct.transform.position = casillaPulsada.transform.position;
+
+                        else if (flechaActiva == azulAct)
+                            azulAct.transform.position = casillaPulsada.transform.position;
+                    
+                }
+            }
 
 		} 
 	
@@ -213,19 +235,29 @@ public class GameManager : MonoBehaviour {
 
 	public void setFichaActiva(GameObject FichaAct){
 	//Si hay una ficha activa, la desactivamos y activamos la que nos viene
+    //Si no, activamos directamente la que llega
 		if (fichaActiva == null) {
 			fichaActiva = FichaAct;
 		} 
 		else {
+
 			//Se desactiva la que está activa
 			fichaActiva.GetComponent<Ficha> ().activa = false;
-			fichaActiva.GetComponent<Ficha> ().cambiaEstrella (false);
+			//fichaActiva.GetComponent<Ficha> ().cambiaEstrella (false);
+
 
 			//Y se activa la que se ha clickado nueva
 			fichaActiva = FichaAct;
 			cambiaTexto ();
-			
-		}
+
+            if (fichaActiva.tag == "FichaRoja") flechaActiva = rojaAct;
+
+            else if (fichaActiva.tag == "FichaVerde") flechaActiva = verdeAct;
+
+            else if (fichaActiva.tag == "FichaAzul") flechaActiva = azulAct;
+
+
+        }
 
 	}
 	//Cambia el texto que indica la ficha seleccionada
@@ -234,40 +266,50 @@ public class GameManager : MonoBehaviour {
 
 		case "FichaRoja":
 			seleccion.color = new Color (1, 0, 0);
-			seleccion.text = "Ficha seleccionada: Roja";
+			seleccion.text = "Unicornio activo: Rojo";
 			break;
 		
 		case "FichaVerde":
 			seleccion.color = new Color (0, 1, 0);
-			seleccion.text = "Ficha seleccionada: Verde";
+			seleccion.text = "Unicornio activo: Verde";
 			break;
 
 		case "FichaAzul":
 			seleccion.color = new Color (0, 0, 1);
-			seleccion.text = "Ficha seleccionada: Azul";
+			seleccion.text = "Unicornio activo: Azul";
 			break;
 
 		}
 	}
 
-	void instanciaFlecha(GameObject casilla){
-		switch (fichaActiva.tag) {
+    //Instancia las flechas pero sin darles una posición de la matriz
+	void instanciaFlecha(GameObject casilla, string ficha){
+		switch (ficha) {
 
 		case "FichaRoja":
-			flechaActiva = Instantiate (flechaRoja, casilla.transform);
-			//Colocamos la flecha en la matriz y tal
-			break;
+               
+                    rojaAct = Instantiate(flechaRoja, casilla.transform);
+                    flechaActiva = rojaAct;
+               
+                break;
 
 		case "FichaVerde":
-			flechaActiva = Instantiate (flechaVerde, casilla.transform);
-			break;
+
+                    verdeAct = Instantiate(flechaVerde, casilla.transform);
+                    flechaActiva = verdeAct;
+                
+                break;
 
 		case "FichaAzul":
-			flechaActiva = Instantiate (flechaAzul, casilla.transform);
-			break;
+
+                    azulAct = Instantiate(flechaAzul, casilla.transform);
+                    flechaActiva = azulAct;
+              
+                break;
 
 		}
-	}
+
+    }
 
 
 }

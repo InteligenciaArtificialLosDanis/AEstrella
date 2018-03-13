@@ -533,7 +533,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'Ficha seleccionada: '
+  m_Text: 'Unicornio activo: '
 --- !u!222 &1977377382
 CanvasRenderer:
   m_ObjectHideFlags: 0
