@@ -156,6 +156,15 @@ public class GameManager : MonoBehaviour {
 
 	}
 
+	public GameObject getFichaActiva(){
+		return fichaActiva;
+	}
+
+	public GameObject getFlechaActiva(){
+		return flechaActiva;
+	}
+
+
     void creaTablero() {
 		int y = 0; //Coordenadas de UNITY
 		int cientoUno = tablero.GetLength(0) * tablero.GetLength(1);
