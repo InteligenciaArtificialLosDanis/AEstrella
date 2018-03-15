@@ -32,7 +32,7 @@ public class Nodo
 
 	//Nececito un int g que sea, usando manhattan, el coste desde este NODO al FINAL. Que sería calcularlo cuando creamos nodos
 
-	//Luego podríamos tener un nodo que sea la suma de esa mierda o algo por el estilo.
+	//Luego podríamos tener un int que sea la suma de esa mierda o algo por el estilo.
 }
 
 
@@ -50,6 +50,7 @@ public class IAManager : MonoBehaviour {
 	 * CASILLA VACIA = 0;
 	 * CASILLA EMBARRADA = 1;
 	 * CASILLA BLOQUEADA = 2;
+     * CASILLA CON FICHA = 3;
 	*/
 
 
@@ -67,11 +68,12 @@ public class IAManager : MonoBehaviour {
 		
 	}
 
-	//La distanciaaa (Heuristica)
-	//Quizá haysa que hacer una distinción para aumentar el coste en uno si la casilla es embarrada?
-	int distanciaManhattan(Vector2 Ahora, Vector2 Fin){
-		//no puedes convertir float a int xd Corregir
-		//return (int)Mathf.Abs(Ahora.x - Fin.x) + Mathf.Abs(Ahora.y - Fin.y);
+	//La distancia (Heuristica)
+	//Quizá haya que hacer una distinción para aumentar el coste en uno si la casilla es embarrada?
+	float distanciaManhattan(Vector2 Ahora, Vector2 Fin){
+       
+        return Mathf.Abs(Ahora.x - Fin.x) + Mathf.Abs(Ahora.y - Fin.y);
+        
 	}
 
 	//Sirve para encontrar casillas adyacentes que no están bloqueadas alrededor :3
@@ -116,33 +118,16 @@ public class IAManager : MonoBehaviour {
 
 	}
 
-	//SI PERO SE CAMBIA
+	//Indica si la ficha puede desplazarse a la casilla de cordenadas (x,y)
 	bool puedesMoverte(int x, int y)
 	{
-
-		/*switch (dir)
-		{
-		case Movimiento.Arriba:
-			if (emptyF - 1 >= 0) return true;
-			break;
-		case Movimiento.Abajo:
-			if (emptyF + 1 <= 2) return true;
-			break;
-		case Movimiento.Derecha:
-			if (emptyC + 1 <= 2) return true;
-			break;
-		case Movimiento.Izquierda:
-			if (emptyC - 1 >= 0) return true;
-			break;
-		}
-		*/
 		//TRUE si puede moverse
-		return tablero [x, y] != 2 /*bloqueda*/ || tablero [x, y] != 4 /*Ficha*/; 
+		return tablero [x, y] != 2 /*bloqueda*/ && tablero [x, y] != 3 /*Ficha*/; 
 	
 	}
 
 
-		//AQUI VA EL PATHFINDING :3
+	//AQUI VA EL PATHFINDING :3
 	public void BFS(int[,] tableroOrigen)
 	{
 		preparacionIA ();
