@@ -15,24 +15,50 @@ public enum Movimiento {Arriba, Abajo, Izquierda, Derecha, No};
 public class Nodo
 {
 	//Recibe un padre y recibe una posicion en el tablero. Y ya supongo que tambien el movimiento y tal
-	public Nodo (int [,] tablrAux, Movimiento operador, Nodo n,  int c) 
+	public Nodo (Movimiento operador, Nodo n,  int c, Vector2 posFicha) 
 	{
-		tablero = tablrAux;
 		coste = c;
 		movRealizado = operador;
 		padre = n;
+
+		//
+		x = posFicha.x;
+		y = posFicha.y;
+
+		valor = x + (y * 10); //¿Nani es esto?
+
 	}
 
 	public int coste;
 	public int[,] tablero;
 	public Movimiento movRealizado;
 	public Nodo padre;
-	//
-	//Necesito un int f que sea, usando manhattan, el coste desde el PRINCIPIO a este nodo. Creo que sería nuestro "c"
 
-	//Nececito un int g que sea, usando manhattan, el coste desde este NODO al FINAL. Que sería calcularlo cuando creamos nodos
+	int valor; //Point.x + (Point.y*10);
+	int x, y;
+
+	int f;	   // el coste desde el PRINCIPIO al nodo final. Que sería calcularlo cuando creamos nodos
+	int g;    // el coste desde el PRINCIPIO a este nodo. 
 
 	//Luego podríamos tener un int que sea la suma de esa mierda o algo por el estilo.
+
+	public void setf(int newf){
+		f = newf;
+	}
+
+	public void setg(int newg){
+		g = newg;
+	}
+
+	public int getF(){
+		return f;
+	}
+
+	public int getG(){
+		return g;
+	}
+
+
 }
 
 
@@ -77,45 +103,37 @@ public class IAManager : MonoBehaviour {
 	}
 
 	//Sirve para encontrar casillas adyacentes que no están bloqueadas alrededor :3
-	//Es básicamente el modelo transición
-	int[,] encuentraVecinos(int[,] tablero, Movimiento nuevoMov){
+	//x e y son las posiciones de la ficha en el caso n-ésimo
+	bool [] encuentraVecinos(int x, int y){
 
-		int aux; //por si los swaps y tal
+		// Direcciones // ¿?
+		int norte = y - 1;
+		int sur = y + 1;
+		int este = x + 1;
+		int oeste = x - 1;
 
+		// Comprobaciones //
+		bool movimientoNorte = norte > -1 && puedesMoverte(x, norte);
+		bool movimientoSur = sur < 10 && puedesMoverte (x, sur);
+		bool movimientoEste = este < 10 && puedesMoverte (este, y);
+		bool movimientoOeste = oeste > -1 && puedesMoverte (oeste, y);
 
-		int[,] nuevoTablero = new int[10, 10]; 
-		igualaTablero(nuevoTablero, tablero);
+		bool[] resultado = new bool[4](false);
 
+		if (movimientoNorte)
+			resultado [0] = true;
 
-		//Lo desplazamos en funcion del movimiento dado
-		switch (nuevoMov)
-		{
-		case Movimiento.Derecha:
-			//aux = nuevoTablero[filaEmpty, colEmpty + 1];
-			//Comprobar si col + 1 > 10 -> fuera
-			//Si no, comprobar si se puede pasar ahí. 
-			//ENTONCES quizas pues no sé, hacer el swap y mover la ficha no tengo ni puta idea la verdad
-			break;
+		if (movimientoSur)
+			resultado [1] = true;
 
-		case Movimiento.Izquierda:
-			//aux = nuevoTablero[filaEmpty, colEmpty - 1];
+		if (movimientoEste)
+			resultado [2] = true;
 
-			break;
+		if (movimientoOeste)
+			resultado [3] = true;
 
-		case Movimiento.Arriba:
-			//aux = nuevoTablero[filaEmpty - 1, colEmpty];
-
-			break;
-
-		case Movimiento.Abajo:
-			//aux = nuevoTablero[filaEmpty + 1, colEmpty];
-
-			break;
-		}
-
-
-		return nuevoTablero;
-
+		return resultado;
+		
 	}
 
 	//Indica si la ficha puede desplazarse a la casilla de cordenadas (x,y)
@@ -126,13 +144,54 @@ public class IAManager : MonoBehaviour {
 	
 	}
 
+	void CalculaCamino(int[,] tableroOrigen){
+
+		preparacionIA ();
+		igualaTablero (tablero, tableroOrigen); //Clonamos de forma profunda el tablero
+
+		//Creamos nodos del inicio y del final
+		Nodo origen = new Nodo(Movimiento.No,null,0,posIni);
+		//Nodo final = new Nodo (Movimiento.No, null, 10000, posFin); //¿Quitar el coste del nodo? ¿Movimiento del final?
+
+		//Lista de nodos abiertos
+		List <Nodo> nodosAbiertos = new List<Nodo>();
+		nodosAbiertos.Add(origen); 
+		//Lista de nodos cerrados (No vas a volver a tocar)
+		List <Nodo> nodosCerrados = new List<Nodo>();
+
+		//Nodo cercano
+		Nodo nodoVecino;
+		//Nodo actual (el que consideramos en esta iteracion)
+		Nodo nodoActual;
+
+		//Nodo Camino: Referecia a un nodo que empieza un camino en cuestión
+		Nodo nodoCamino;
+
+		//Variables que usaremos en los cálculos
+		int max, min, j;
+		bool fin = false;
+
+		//BUCLE PRINCIPAL
+		while (nodosAbiertos.Count > 0 && !fin) {
+			max = 10;
+			min = -1;
+
+			for (int i = 0; i < nodosAbiertos.Count; i++) {
+				if(nodosAbiertos[i]< max)
+				{
+					max = nodosAbiertos[i].getF();
+					min = i;
+				}
+			}
+		
+		}
+
+	}
 
 	//AQUI VA EL PATHFINDING :3
 	public void BFS(int[,] tableroOrigen)
 	{
-		preparacionIA ();
-		igualaTablero (tablero, tableroOrigen); //Clonamos de forma profunda el tablero
-
+		
 		//tableroIni = convierteMatrizGOaInt();
 
 
