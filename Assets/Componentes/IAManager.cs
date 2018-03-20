@@ -15,17 +15,16 @@ public enum Movimiento {Arriba, Abajo, Izquierda, Derecha, No};
 public class Nodo
 {
 	//Recibe un padre y recibe una posicion en el tablero. Y ya supongo que tambien el movimiento y tal
-	public Nodo (Movimiento operador, Nodo n,  int c, Vector2 posFicha) 
+	public Nodo (Nodo p, int c, Vector2Int posFicha) 
 	{
 		coste = c;
-		movRealizado = operador;
-		padre = n;
-
+        
 		//
+        padre = p;
 		x = posFicha.x;
 		y = posFicha.y;
 
-		valor = x + (y * 10); //¿Nani es esto?
+		valor = x + (y * 10);
 
 	}
 
@@ -34,8 +33,8 @@ public class Nodo
 	public Movimiento movRealizado;
 	public Nodo padre;
 
-	int valor; //Point.x + (Point.y*10);
-	int x, y;
+	public int valor; //Point.x + (Point.y*10);
+	public int x, y;
 
 	int f;	   // el coste desde el PRINCIPIO al nodo final. Que sería calcularlo cuando creamos nodos
 	int g;    // el coste desde el PRINCIPIO a este nodo. 
@@ -68,7 +67,7 @@ public class IAManager : MonoBehaviour {
 	GameObject fichaActiva;
 	GameObject flechaActiva;
 
-	Vector2 posIni, posFin;
+	Vector2Int posIni, posFin;
 	public Stack<Movimiento> movsSolucion;	//Stack de movimientos
 
 	int[,] tablero;
@@ -104,33 +103,64 @@ public class IAManager : MonoBehaviour {
 
 	//Sirve para encontrar casillas adyacentes que no están bloqueadas alrededor :3
 	//x e y son las posiciones de la ficha en el caso n-ésimo
-	bool [] encuentraVecinos(int x, int y){
+	List<Nodo>encuentraVecinos(Nodo actual){
 
-		// Direcciones // ¿?
-		int norte = y - 1;
-		int sur = y + 1;
-		int este = x + 1;
-		int oeste = x - 1;
+        int coste = 0;
+
+		// Direcciones //
+		int norte = actual.y - 1;
+		int sur = actual.x + 1;
+		int este = actual.x + 1;
+		int oeste = actual.x - 1;
+
+        //Movimientos//
+        Vector2Int n = new Vector2Int(actual.x, norte); //norte
+        Vector2Int s = new Vector2Int(actual.x, sur); //sur
+        Vector2Int e = new Vector2Int(este, actual.y); //este
+        Vector2Int o = new Vector2Int(oeste, actual.y); //oeste
 
 		// Comprobaciones //
-		bool movimientoNorte = norte > -1 && puedesMoverte(x, norte);
-		bool movimientoSur = sur < 10 && puedesMoverte (x, sur);
-		bool movimientoEste = este < 10 && puedesMoverte (este, y);
-		bool movimientoOeste = oeste > -1 && puedesMoverte (oeste, y);
+		bool movimientoNorte = norte > -1 && puedesMoverte(actual.x, norte);
+		bool movimientoSur = sur < 10 && puedesMoverte (actual.x, sur);
+		bool movimientoEste = este < 10 && puedesMoverte (este, actual.y);
+		bool movimientoOeste = oeste > -1 && puedesMoverte (oeste, actual.y);
 
-		bool[] resultado = new bool[4](false);
+		List<Nodo> resultado = new List<Nodo>();
 
-		if (movimientoNorte)
-			resultado [0] = true;
+		if (movimientoNorte){
 
-		if (movimientoSur)
-			resultado [1] = true;
+            if (tablero[actual.x, norte] == 1) coste = 2;
+            else coste = 1;
 
-		if (movimientoEste)
-			resultado [2] = true;
+			resultado [0] = new Nodo(actual, coste, n);
+        }
 
-		if (movimientoOeste)
-			resultado [3] = true;
+        if (movimientoSur)
+        {
+
+            if (tablero[actual.x, sur] == 1) coste = 2;
+            else coste = 1;
+
+            resultado[0] = new Nodo(actual, coste, s);
+        }
+
+        if (movimientoEste)
+        {
+
+            if (tablero[este, actual.y] == 1) coste = 2;
+            else coste = 1;
+
+            resultado[0] = new Nodo(actual, coste, e);
+        }
+
+        if (movimientoOeste)
+        {
+
+            if (tablero[oeste, actual.y] == 1) coste = 2;
+            else coste = 1;
+
+            resultado[0] = new Nodo(actual, coste, o);
+        }
 
 		return resultado;
 		
@@ -150,8 +180,8 @@ public class IAManager : MonoBehaviour {
 		igualaTablero (tablero, tableroOrigen); //Clonamos de forma profunda el tablero
 
 		//Creamos nodos del inicio y del final
-		Nodo origen = new Nodo(Movimiento.No,null,0,posIni);
-		//Nodo final = new Nodo (Movimiento.No, null, 10000, posFin); //¿Quitar el coste del nodo? ¿Movimiento del final?
+		Nodo origen = new Nodo(null, 0, posIni);
+		Nodo final = new Nodo (null, 0, posFin);
 
 		//Lista de nodos abiertos
 		List <Nodo> nodosAbiertos = new List<Nodo>();
@@ -159,13 +189,24 @@ public class IAManager : MonoBehaviour {
 		//Lista de nodos cerrados (No vas a volver a tocar)
 		List <Nodo> nodosCerrados = new List<Nodo>();
 
+        //Lista de nodos vecinos
+        List<Nodo> nodosVecinos = new List<Nodo>();
+
+
+        //Lista de posiciones elegidos para seguir el camino más corto
+        List<Vector2> resultado = new List<Vector2>();
+
 		//Nodo cercano
 		Nodo nodoVecino;
+
 		//Nodo actual (el que consideramos en esta iteracion)
 		Nodo nodoActual;
 
 		//Nodo Camino: Referecia a un nodo que empieza un camino en cuestión
 		Nodo nodoCamino;
+
+        //Posición de cada nodoCamino a la hora de pasarlo al resultado
+        Vector2 posNodo;
 
 		//Variables que usaremos en los cálculos
 		int max, min, j;
@@ -177,108 +218,74 @@ public class IAManager : MonoBehaviour {
 			min = -1;
 
 			for (int i = 0; i < nodosAbiertos.Count; i++) {
-				if(nodosAbiertos[i]< max)
+				if(nodosAbiertos[i].getF()< max)
 				{
 					max = nodosAbiertos[i].getF();
 					min = i;
 				}
 			}
+
+            nodoActual = nodosAbiertos[0];
+            nodosAbiertos.Remove(nodosAbiertos[0]);
+
+            //¿Es la posición de destino?
+            if (nodoActual.valor == final.valor)
+            {
+                nodosCerrados.Add(nodoActual);
+
+                nodoCamino = nodosCerrados[nodosCerrados.Count -1];
+
+                do
+                {
+                    //Se añade al resultado cada posición por la que pasa el nodoCamino
+                    posNodo = new Vector2(nodoCamino.x, nodoCamino.y);
+                    resultado.Add(posNodo);
+
+                    //nodoCamino se iguala a su padre para ir desandando el camino hacia atrás y guardarlo en el resultado
+                    nodoCamino = nodoCamino.padre;
+                    
+
+                }
+
+                while (nodoCamino != null);
+
+                //Limpiamos las listas
+                nodosAbiertos.Clear();
+                nodosCerrados.Clear();
+
+                //Damos la vuelta al resultado para que se realice desde el origen al final (se guardó desandando desde el origen al final)
+                resultado.Reverse();
+
+            }
+
+            else //No ha llegado al destino
+            {
+                //Buscamos por qué posiciones vecinas se puede pasar (No bloqueadas o con ficha)
+                nodosVecinos = encuentraVecinos(nodoActual);
+                j = nodosVecinos.Count;
+
+                //Comprobamos cada vecino
+                for (int i = 0; i < j; i++)
+                {
+                    nodoVecino = nodosVecinos[i];
+                    posNodo = new Vector2Int(nodoVecino.x, nodoVecino.y);
+                    //nodoCamino = new Nodo(nodoActual, nodoVecino.coste, posNodo);
+
+                    //Falta el if
+                }
+
+                nodosCerrados.Add(nodoActual);
+
+            }
 		
 		}
 
+            //return resultado;
+
 	}
-
-	//AQUI VA EL PATHFINDING :3
-	public void BFS(int[,] tableroOrigen)
-	{
-		
-		//tableroIni = convierteMatrizGOaInt();
-
-
-		//Creamos el nodo inicial
-		Nodo raiz = new Nodo(tableroOrigen, Movimiento.No, null, 0);
-
-		//if (raiz.tablero == solucion) Debug.Log("De puta madre, has llegado a la solucion");
-	
-		Queue<Nodo> frontera = new Queue<Nodo>();
-		frontera.Enqueue(raiz);
-		Debug.Log(frontera.Count + " ANtes del bucle");
-
-	
-		List<int[,]> explorado = new List<int[,]>(); //Lista de tableros explorados
-
-
-		bool fin = false;
-		while (!fin && frontera.Count != 0)
-			{
-
-				Nodo front = frontera.Dequeue();
-				explorado.Add(front.tablero);
-
-				int filaEmpty, colEmpty;
-				filaEmpty = colEmpty = 0;
-				//buscaEmpty(front.tablero, ref filaEmpty, ref colEmpty); //Buscamos el empty en la Matriz
-
-				Debug.Log("Empty: " + filaEmpty + " " + colEmpty);
-
-				//Para cada una de las direcciones posibles->
-				for (int i = 0; i < 4; i++)
-				{
-					Movimiento nuevoMov = Movimiento.No;
-					switch (i)
-					{
-					case 0: //ARRIBA
-						nuevoMov = Movimiento.Arriba;
-						break;
-
-					case 1: //ABAJO
-						nuevoMov = Movimiento.Abajo;
-						break;
-
-					case 2://Izquierda
-						nuevoMov = Movimiento.Izquierda;
-						break;
-
-					case 3: //Derecha
-						nuevoMov = Movimiento.Derecha;
-						break;
-
-
-					}
-
-					//if (movimientoLegalIA(nuevoMov, filaEmpty, colEmpty))
-					//{
-
-						int[,] tableroHijo = new int[3, 3];
-						//igualaTablero(tableroHijo, modeloTransicion(front.tablero, nuevoMov, filaEmpty, colEmpty));
-						//Nodo hijo = new Nodo(tableroHijo, nuevoMov, front, front.coste + 1);
-
-						//if (!frontera.Contains(hijo) && !containsEnLista(explorado, hijo.tablero))
-						//{
-
-							/*
-							if (comparaTableros(hijo.tablero, solucion))
-							{
-
-								//Llama al método de solución
-								DevuelveSolucion(hijo);
-								fin = true;
-							}
-
-							else
-							{
-								frontera.Enqueue(hijo);
-
-							}
-							*/
-						//}
-					}
-
-				}
-			}
 		
 
-		bool containsEnLista(List<int[,]> lista, int[,] tablero)
+	    bool containsEnLista(List<int[,]> lista, int[,] tablero)
 		{
 			int i = 0;
 			bool contiene = false;

@@ -6,7 +6,7 @@ public class Ficha : MonoBehaviour {
 
 	public GameObject estrella;
 	public bool activa;
-	Vector2 posEnMatriz;
+	Vector2Int posEnMatriz;
 
 
 	// Use this for initialization
@@ -36,7 +36,7 @@ public class Ficha : MonoBehaviour {
 		posEnMatriz.y = y;
 	}
 
-	public Vector2 getPosMatriz(){
+	public Vector2Int getPosMatriz(){
 		return posEnMatriz;
 	}
 

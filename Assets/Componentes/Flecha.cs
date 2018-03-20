@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class Flecha : MonoBehaviour {
 
-	Vector2 positionInMatrix;
+	Vector2Int positionInMatrix;
 
 	// Use this for initialization
 	void Start () {
@@ -23,7 +23,7 @@ public class Flecha : MonoBehaviour {
 		positionInMatrix.y = y;
 	}
 
-	public Vector2 getPosMatriz(){
+	public Vector2Int getPosMatriz(){
 		return positionInMatrix;
 	}
 }
