@@ -6,7 +6,9 @@ public class Ficha : MonoBehaviour {
 
 	public GameObject estrella;
 	public bool activa;
-	Vector2Int posEnMatriz;
+	Vector2Int posEnMatriz, nuevaPos;
+
+    int tipoAntiguo = 0;
 
 
 	// Use this for initialization
@@ -15,11 +17,17 @@ public class Ficha : MonoBehaviour {
 		cambiaEstrella (false);
 
 	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+
+    public int getTipoAntiguo()
+    {
+        return tipoAntiguo;
+    }
+
+    public void setTipoAntiguo(int nuevoTipoAntiguo)
+    {
+        tipoAntiguo = nuevoTipoAntiguo;
+    }
+    
 
 	public void cambiaEstrella(bool actEstr){
 		if (actEstr) {
@@ -48,4 +56,16 @@ public class Ficha : MonoBehaviour {
 		GameManager.instance.setFichaActiva (this.gameObject);
 		
 	}
+
+    public void mueveFicha(Vector2Int np)
+    {
+        nuevaPos = np;
+        posEnMatriz = np;      //Actualizo la referencia a la matriz local
+        Invoke("mueve", 0.7f); //Llama a mueve con un breveRetraso
+    }
+
+    void mueve()
+    {
+        transform.position.Set(nuevaPos.x, -nuevaPos.y, 0);
+    }
 }

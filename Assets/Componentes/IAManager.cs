@@ -21,6 +21,9 @@ public class Nodo
         
 		//
         padre = p;
+
+        pos = posFicha;
+
 		x = posFicha.x;
 		y = posFicha.y;
 
@@ -30,8 +33,8 @@ public class Nodo
 
 	public int coste;
 	public int[,] tablero;
-	public Movimiento movRealizado;
 	public Nodo padre;
+    Vector2Int pos;
 
 	public int valor; //Point.x + (Point.y*10);
 	public int x, y;
@@ -39,7 +42,6 @@ public class Nodo
 	int f;	   // el coste desde el PRINCIPIO al nodo final. Que sería calcularlo cuando creamos nodos
 	int g;    // el coste desde el PRINCIPIO a este nodo. 
 
-	//Luego podríamos tener un int que sea la suma de esa mierda o algo por el estilo.
 
 	public void setf(int newf){
 		f = newf;
@@ -57,6 +59,10 @@ public class Nodo
 		return g;
 	}
 
+    public Vector2Int getPos(){
+        return pos;
+    }
+
 
 }
 
@@ -68,9 +74,10 @@ public class IAManager : MonoBehaviour {
 	GameObject flechaActiva;
 
 	Vector2Int posIni, posFin;
-	public Stack<Movimiento> movsSolucion;	//Stack de movimientos
+
 
 	int[,] tablero;
+
 	/*
 	 * CASILLA VACIA = 0;
 	 * CASILLA EMBARRADA = 1;
@@ -81,7 +88,7 @@ public class IAManager : MonoBehaviour {
 
 	void preparacionIA () {
 			
-		movsSolucion = new Stack<Movimiento>();
+		
 		fichaActiva = GM.GetComponent<GameManager>().getFichaActiva();
 		posIni = fichaActiva.GetComponent<Ficha>().getPosMatriz();  //Tomamos la posicion en la matriz de la ficha
 
@@ -95,7 +102,7 @@ public class IAManager : MonoBehaviour {
 
 	//La distancia (Heuristica)
 	//Quizá haya que hacer una distinción para aumentar el coste en uno si la casilla es embarrada?
-	float distanciaManhattan(Vector2 Ahora, Vector2 Fin){
+	int distanciaManhattan(Vector2Int Ahora, Vector2Int Fin){
        
         return Mathf.Abs(Ahora.x - Fin.x) + Mathf.Abs(Ahora.y - Fin.y);
         
@@ -174,7 +181,7 @@ public class IAManager : MonoBehaviour {
 	
 	}
 
-	void CalculaCamino(int[,] tableroOrigen){
+	public List<Vector2Int> CalculaCamino(int[,] tableroOrigen){
 
 		preparacionIA ();
 		igualaTablero (tablero, tableroOrigen); //Clonamos de forma profunda el tablero
@@ -192,9 +199,12 @@ public class IAManager : MonoBehaviour {
         //Lista de nodos vecinos
         List<Nodo> nodosVecinos = new List<Nodo>();
 
+        //Lista de booleanos para representar valores ya visitados
+        bool [] mundoAEstrella = new bool[100];
+
 
         //Lista de posiciones elegidos para seguir el camino más corto
-        List<Vector2> resultado = new List<Vector2>();
+        List<Vector2Int> resultado = new List<Vector2Int>();
 
 		//Nodo cercano
 		Nodo nodoVecino;
@@ -205,8 +215,7 @@ public class IAManager : MonoBehaviour {
 		//Nodo Camino: Referecia a un nodo que empieza un camino en cuestión
 		Nodo nodoCamino;
 
-        //Posición de cada nodoCamino a la hora de pasarlo al resultado
-        Vector2 posNodo;
+       
 
 		//Variables que usaremos en los cálculos
 		int max, min, j;
@@ -238,8 +247,8 @@ public class IAManager : MonoBehaviour {
                 do
                 {
                     //Se añade al resultado cada posición por la que pasa el nodoCamino
-                    posNodo = new Vector2(nodoCamino.x, nodoCamino.y);
-                    resultado.Add(posNodo);
+                   
+                    resultado.Add(nodoCamino.getPos());
 
                     //nodoCamino se iguala a su padre para ir desandando el camino hacia atrás y guardarlo en el resultado
                     nodoCamino = nodoCamino.padre;
@@ -268,19 +277,35 @@ public class IAManager : MonoBehaviour {
                 for (int i = 0; i < j; i++)
                 {
                     nodoVecino = nodosVecinos[i];
-                    posNodo = new Vector2Int(nodoVecino.x, nodoVecino.y);
-                    //nodoCamino = new Nodo(nodoActual, nodoVecino.coste, posNodo);
+                    int coste = nodoVecino.coste + nodoActual.coste;
+                    nodoCamino = new Nodo(nodoActual, coste, nodoVecino.getPos());
 
-                    //Falta el if
+                    if (!mundoAEstrella[nodoCamino.valor] /*¿&& !nodosCerrados.contains(nodoCamino)?*/) //Si la posicion no está en el mundo
+                    {
+                        //Estimamos el coste de la ruta creada
+                        int nuevaG = nodoActual.getG() + distanciaManhattan(nodoVecino.getPos(), nodoCamino.getPos());
+                        nodoCamino.setg(nuevaG);
+                        //Calculamos el coste desde este nuevo nodo al destino
+                        int nuevaF = nuevaG + distanciaManhattan(nodoVecino.getPos(), final.getPos());
+                        nodoCamino.setf(nuevaF);
+
+                        nodosAbiertos.Add(nodoCamino);
+
+                        mundoAEstrella[nodoCamino.valor] = true;
+
+                    }
+                    
                 }
-
+                //Una vez procesados y añadidos los vecinos, se cierra este nodo.
                 nodosCerrados.Add(nodoActual);
 
             }
 		
 		}
 
-            //return resultado;
+       //Al final de todas la iteraciones, vamos a devolver el resultado
+       //Que sabemos que va a ser la lista de vectores 2 que va a seguir la ficha
+       return resultado;
 
 	}
 		
@@ -338,16 +363,6 @@ public class IAManager : MonoBehaviour {
 			}
 
 		}
-
-		//Método recursivo que carga en una pila (LIFO) los movimientos realizados hasta la solucion
-		void DevuelveSolucion(Nodo nodoSol){
-			if(nodoSol.padre != null){
-				movsSolucion.Push(nodoSol.movRealizado);
-				Debug.Log(nodoSol.movRealizado);
-				DevuelveSolucion (nodoSol.padre);
-			}
-		}
-
 
 		
 }
